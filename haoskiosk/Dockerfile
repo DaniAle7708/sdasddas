@@ -23,6 +23,8 @@ RUN apk update && apk add --no-cache \
      mesa-dri-gallium \
      mesa-egl \
      mesa-gles \
+     mesa-va-gallium \
+     libva-vdpau-driver \
      libdrm \
 ### X utils
      xdotool \
