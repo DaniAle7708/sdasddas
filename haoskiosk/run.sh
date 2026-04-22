@@ -684,11 +684,27 @@ if [ -n "$VNC_SERVER" ]; then
     x11vnc $X11VNC_OPTS 2> >(grep -v 'The VNC desktop is:' >&2)
 fi
 
-#### Start browser (or debug mode)  and wait/sleep
+#### Start browser
 if [ "$DEBUG_MODE" != true ]; then
-    ### Run browser in the background and wait for process to exit
-    chromium --user-data-dir="/data/browser" --no-sandbox --disable-gpu --disable-software-rasterizer --ozone-platform=x11 --start-maximized --kiosk "$HA_URL/$HA_DASHBOARD" &
-    bashio::log.info "Launching chromium browser(PID=$!): $HA_URL/$HA_DASHBOARD"
+    # Variabili per forzare Chromium a comportarsi bene
+    export EGL_PLATFORM=x11
+    export GDK_BACKEND=x11
+    
+    bashio::log.info "Launching Chromium with Hardware-Override..."
+    
+    chromium \
+      --user-data-dir="/data/browser" \
+      --no-sandbox \
+      --disable-gpu \
+      --disable-software-rasterizer \
+      --ozone-platform=x11 \
+      --disable-gpu-compositing \
+      --disable-vulkan \
+      --disable-dev-shm-usage \
+      --start-maximized \
+      --kiosk "$HA_URL/$HA_DASHBOARD" &
+    
+    bashio::log.info "Chromium (PID=$!) launched!"
 
     count=0
     while true; do  # Wait for all browser processes to exit
