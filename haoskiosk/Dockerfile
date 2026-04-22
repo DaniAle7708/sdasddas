@@ -17,6 +17,7 @@ ENV ADDON_VERSION=${BUILD_VERSION}
 RUN apk update && apk add --no-cache \
 ## Xserver and graphics
      xorg-server \
+     chromium \
      xf86-video-modesetting \
      mesa-dri-gallium \
      mesa-egl \
