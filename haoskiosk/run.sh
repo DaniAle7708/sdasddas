@@ -686,7 +686,7 @@ fi
 
 #### Start browser
 if [ "$DEBUG_MODE" != true ]; then
-    # Variabili d'ambiente per forzare il software rendering
+    # 1. Variabili per forzare il software rendering (Anti-Crash)
     export LIBGL_ALWAYS_SOFTWARE=1
     export GALLIUM_DRIVER=llvmpipe
     export EGL_PLATFORM=x11
@@ -694,8 +694,21 @@ if [ "$DEBUG_MODE" != true ]; then
     export QT_X11_NO_MITSHM=1
     export _X11_NO_MITSHM=1
 
-    bashio::log.info "Lancio di Chromium con configurazione Ultra-Safe..."
+    # 2. Calcolo dello Zoom (es: 120 diventa 1.2)
+    # Usiamo awk per ottenere il valore decimale corretto
+    SCALE_FACTOR=$(awk "BEGIN {print $ZOOM_LEVEL / 100}")
 
+    # 3. Costruzione URL pulito per Kiosk Mode (HACS)
+    # Aggiunge ?kiosk alla fine per nascondere sidebar e header di Home Assistant
+    if [[ "$HA_DASHBOARD" == *"?"* ]]; then
+        FINAL_URL="$HA_URL/$HA_DASHBOARD&kiosk"
+    else
+        FINAL_URL="$HA_URL/$HA_DASHBOARD?kiosk"
+    fi
+
+    bashio::log.info "Lancio Chromium: Zoom=$SCALE_FACTOR, DarkMode=$DARK_MODE, URL=$FINAL_URL"
+
+    # 4. Lancio di Chromium con tutti i flag necessari
     chromium \
       --user-data-dir="/data/browser" \
       --no-sandbox \
@@ -714,13 +727,17 @@ if [ "$DEBUG_MODE" != true ]; then
       --test-type \
       --no-first-run \
       --start-maximized \
-      --kiosk "$HA_URL/$HA_DASHBOARD" &
+      --kiosk \
+      --force-device-scale-factor=$SCALE_FACTOR \
+      $( [ "$DARK_MODE" = "true" ] && echo "--force-dark-mode --enable-features=WebUIDarkMode" ) \
+      "$FINAL_URL" &
     
     CHROME_PID=$!
     bashio::log.info "Chromium lanciato (PID=$CHROME_PID). Monitoraggio in corso..."
 
-    # Il loop di controllo deve essere più tollerante all'avvio
+    # 5. Monitoraggio del processo
     sleep 10
+    count=0
     while true; do  
         if pgrep -f "chromium" > /dev/null 2>&1; then
             count=0
@@ -732,6 +749,11 @@ if [ "$DEBUG_MODE" != true ]; then
         sleep 5
     done
     bashio::log.info "Chromium è terminato. Chiusura add-on..."
+
+else  ### Debug mode
+    bashio::log.info "Entering debug mode (X & $WINMGR window manager but no $BROWSER browser)..."
+    exec sleep infinite
+fi
 
 else  ### Debug mode
     bashio::log.info "Entering debug mode (X & $WINMGR window manager but no $BROWSER browser)..."
