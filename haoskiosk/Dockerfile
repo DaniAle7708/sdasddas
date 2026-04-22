@@ -14,6 +14,7 @@ ENV ADDON_VERSION=${BUILD_VERSION}
 
 #===============================================================================
 ##### Install X, Browser and all necessary dependencies
+##### Install X, Browser and all necessary dependencies
 RUN apk update && apk add --no-cache \
 ## Xserver and graphics
      xorg-server \
@@ -28,13 +29,11 @@ RUN apk update && apk add --no-cache \
      xinput \
      xrandr \
      xset \
-#     xev \
      libxkbcommon \
      setxkbmap \
 ### Input, udev
      xf86-input-libinput \
      libinput \
-#     libinput-tools \
      udev \
      libinput-udev \
      libevdev \
@@ -56,15 +55,8 @@ RUN apk update && apk add --no-cache \
     py3-xlib \
 ### Sound
      pulseaudio-utils \
-#     alsa-utils alsa-plugins-pulse \
-### Video
-#     gstreamer-tools \
-#     gst-libav \
-### VNC (for debugging) - run: x11vnc -display :0 -forever & \
+### VNC (for debugging)
       x11vnc \
-# Browser
-#    luakit \
-   && apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/v3.21/community luakit=2.3.6-r0 \
    && rm -rf /var/cache/apk/*
 
 #===============================================================================
