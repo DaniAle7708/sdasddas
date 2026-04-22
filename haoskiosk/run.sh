@@ -324,14 +324,40 @@ cat /etc/X11/xorg.conf
 printf '%*s\n' 80 '' | tr ' ' '#'  #Trailer
 echo "."
 
-bashio::log.info "Starting X on DISPLAY=$DISPLAY..."
-Xorg $NOCURSOR </dev/null 2>&1 &
+bashio::log.info "Starting X on DISPLAY=${DISPLAY}..."
+
+# 1. Avvia Xorg in background con gestione sicura della variabile NOCURSOR
+# Usiamo :- per dare un valore vuoto se la variabile non fosse definita
+Xorg ${NOCURSOR:-} </dev/null 2>&1 &
+X_PID=$!
+
+# 2. Attesa intelligente per l'inizializzazione dei driver
 sleep 2
-chvt 7
+
+# 3. Cambio terminale "gentile"
+# Aggiungiamo || true per evitare che l'add-on crashi se HAOS nega i permessi
+chvt 7 || bashio::log.warning "Impossibile cambiare terminale (chvt), ma proseguo l'avvio..."
+
+# 4. Loop di controllo per l'avvio del server X
 XSTARTUP=30
+bashio::log.info "Waiting for X server to become ready..."
+
 for ((i=0; i<=XSTARTUP; i++)); do
+    # Verifichiamo se il processo Xorg è ancora vivo
+    if ! kill -0 "$X_PID" 2>/dev/null; then
+        bashio::log.error "Xorg process died unexpectedly!"
+        exit 1
+    fi
+
+    # Verifichiamo se X è pronto a ricevere comandi
     if xset q >/dev/null 2>&1; then
+        bashio::log.info "X server started successfully after $i seconds."
         break
+    fi
+    
+    if [ "$i" -eq "$XSTARTUP" ]; then
+        bashio::log.error "X server failed to start within $XSTARTUP seconds."
+        exit 1
     fi
     sleep 1
 done
