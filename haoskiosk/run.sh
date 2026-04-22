@@ -82,7 +82,7 @@ trap cleanup HUP INT QUIT ABRT TERM EXIT
 
 ################################################################################
 #### Variables
-BROWSER="chromium-browser"
+BROWSER="chromium"
 BROWSER_FLAGS="--kiosk --no-sandbox --user-data-dir=/data/browser --disable-infobars"
 
 ################################################################################
