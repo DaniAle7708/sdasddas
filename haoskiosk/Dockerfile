@@ -59,7 +59,7 @@ RUN apk update && apk add --no-cache \
      pulseaudio-utils \
 ### VNC (for debugging)
       x11vnc \
-### System services (Necessari per non far crashare lo script)
+### System services
       dbus \
       dbus-x11 \
    && rm -rf /var/cache/apk/*
