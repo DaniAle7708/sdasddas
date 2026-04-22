@@ -686,21 +686,27 @@ fi
 
 #### Start browser
 if [ "$DEBUG_MODE" != true ]; then
-    # Variabili per forzare Chromium a comportarsi bene
+    # Variabili per forzare il software rendering (Mesa)
+    export LIBGL_ALWAYS_SOFTWARE=1
+    export GALLIUM_DRIVER=swr
     export EGL_PLATFORM=x11
-    export GDK_BACKEND=x11
     
-    bashio::log.info "Launching Chromium with Hardware-Override..."
+    bashio::log.info "Launching Chromium with strict Software Rendering..."
     
     chromium \
       --user-data-dir="/data/browser" \
       --no-sandbox \
       --disable-gpu \
       --disable-software-rasterizer \
-      --ozone-platform=x11 \
       --disable-gpu-compositing \
-      --disable-vulkan \
+      --disable-gpu-rasterization \
+      --disable-gpu-sandbox \
       --disable-dev-shm-usage \
+      --ozone-platform=x11 \
+      --test-type \
+      --no-first-run \
+      --disable-features=WebBluetooth,WebUSB,PreloadMediaEngagementData \
+      --remote-debugging-port=9222 \
       --start-maximized \
       --kiosk "$HA_URL/$HA_DASHBOARD" &
     
