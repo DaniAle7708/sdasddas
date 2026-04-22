@@ -649,7 +649,7 @@ pactl list short sinks | awk -v def="$sink" '{prefix = ($2 == def) ? "*" : " "; 
 
 ### Launch Xinput parsing...
 bashio::log.info "Starting Mouse & Touch input gesture command parsing..."
-python3 -u /mouse_touch_inputs.py  -d 1 -w "$COMMAND_WHITELIST" &
+#python3 -u /mouse_touch_inputs.py  -d 1 -w "$COMMAND_WHITELIST" &
 
 #### Start  HAOSKiosk REST server
 bashio::log.info "Starting HAOSKiosk REST server..."
