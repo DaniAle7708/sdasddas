@@ -687,8 +687,8 @@ fi
 #### Start browser (or debug mode)  and wait/sleep
 if [ "$DEBUG_MODE" != true ]; then
     ### Run browser in the background and wait for process to exit
-    $BROWSER ${BROWSER_FLAGS:+$BROWSER_FLAGS} "$HA_URL/$HA_DASHBOARD" &
-    bashio::log.info "Launching $BROWSER browser(PID=$!): $HA_URL/$HA_DASHBOARD"
+    chromium --user-data-dir="/data/browser" --no-sandbox --disable-gpu --disable-software-rasterizer --ozone-platform=x11 --start-maximized --kiosk "$HA_URL/$HA_DASHBOARD" &
+    bashio::log.info "Launching chromium browser(PID=$!): $HA_URL/$HA_DASHBOARD"
 
     count=0
     while true; do  # Wait for all browser processes to exit
