@@ -686,29 +686,23 @@ fi
 
 #### Start browser
 if [ "$DEBUG_MODE" != true ]; then
-    # 1. Variabili per forzare il software rendering (Anti-Crash)
+    # Variabili anti-crash (Software Rendering)
     export LIBGL_ALWAYS_SOFTWARE=1
     export GALLIUM_DRIVER=llvmpipe
     export EGL_PLATFORM=x11
     export GDK_BACKEND=x11
-    export QT_X11_NO_MITSHM=1
-    export _X11_NO_MITSHM=1
 
-    # 2. Calcolo dello Zoom (es: 120 diventa 1.2)
-    # Usiamo awk per ottenere il valore decimale corretto
+    # Calcolo dello Zoom
     SCALE_FACTOR=$(awk "BEGIN {print $ZOOM_LEVEL / 100}")
 
-    # 3. Costruzione URL pulito per Kiosk Mode (HACS)
-    # Aggiunge ?kiosk alla fine per nascondere sidebar e header di Home Assistant
-    if [[ "$HA_DASHBOARD" == *"?"* ]]; then
-        FINAL_URL="$HA_URL/$HA_DASHBOARD&kiosk"
-    else
-        FINAL_URL="$HA_URL/$HA_DASHBOARD?kiosk"
-    fi
+    # COSTRUZIONE URL CORRETTA (Per evitare 404)
+    # Usiamo localhost:8123 che è l'indirizzo interno più stabile
+    # Rimuoviamo eventuali slash extra
+    CLEAN_DASHBOARD=$(echo "dashboard-giardino" | sed 's/^\///;s/\/$//')
+    FINAL_URL="http://localhost:8123/${CLEAN_DASHBOARD}"
 
-    bashio::log.info "Lancio Chromium: Zoom=$SCALE_FACTOR, DarkMode=$DARK_MODE, URL=$FINAL_URL"
+    bashio::log.info "Lancio Chromium su: $FINAL_URL (Zoom: $SCALE_FACTOR)"
 
-    # 4. Lancio di Chromium con tutti i flag necessari
     chromium \
       --user-data-dir="/data/browser" \
       --no-sandbox \
@@ -716,13 +710,7 @@ if [ "$DEBUG_MODE" != true ]; then
       --disable-gpu \
       --disable-software-rasterizer \
       --disable-gpu-compositing \
-      --disable-gpu-rasterization \
-      --disable-gpu-sandbox \
       --disable-dev-shm-usage \
-      --disable-gpu-memory-buffer-video-frames \
-      --disable-gpu-memory-buffer-compositor-resources \
-      --disable-vulkan \
-      --disable-unveiled-gpu \
       --ozone-platform=x11 \
       --test-type \
       --no-first-run \
@@ -733,9 +721,9 @@ if [ "$DEBUG_MODE" != true ]; then
       "$FINAL_URL" &
     
     CHROME_PID=$!
-    bashio::log.info "Chromium lanciato (PID=$CHROME_PID). Monitoraggio in corso..."
+    bashio::log.info "Chromium lanciato (PID=$CHROME_PID)!"
 
-    # 5. Monitoraggio del processo
+    # Monitoraggio processo
     sleep 10
     count=0
     while true; do  
@@ -743,12 +731,17 @@ if [ "$DEBUG_MODE" != true ]; then
             count=0
         else
             count=$((count + 1))
-            bashio::log.warning "Chromium non risponde (tentativo $count di 3)..."
+            bashio::log.warning "Chromium non trovato (tentativo $count di 3)..."
         fi
         [ $count -ge 3 ] && break 
         sleep 5
     done
-    bashio::log.info "Chromium è terminato. Chiusura add-on..."
+    bashio::log.info "Chiusura add-on..."
+
+else  ### Debug mode
+    bashio::log.info "Debug mode attivo..."
+    exec sleep infinite
+fi
 
 else  ### Debug mode
     bashio::log.info "Entering debug mode (X & $WINMGR window manager but no $BROWSER browser)..."
