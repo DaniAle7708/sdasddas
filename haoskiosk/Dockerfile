@@ -70,17 +70,15 @@ RUN apk update && apk add --no-cache \
 ENV DISPLAY=:0
 
 ##### Copy over 'xorg.conf.default' and lua 'userconf.lua' file
-COPY xorg.conf.default /etc/X11/
-COPY userconf.lua /root/.config/luakit/
-COPY translations/*.yaml /translations/
+RUN pip install --no-cache-dir --break-system-packages aiohttp
 
 COPY run.sh /
 RUN chmod a+x /run.sh
 
+COPY xorg.conf.default /etc/X11/
+COPY userconf.lua /root/.config/luakit/
+COPY translations/*.yaml /translations/
 COPY mouse_touch_inputs.py gesture_commands.json /
 COPY rest_server.py /
-RUN pip install --no-cache-dir  --break-system-packages aiohttp #Required for rest_server.py
 
-#### Patches
-# Need to patch 'unique_instance.lua' so that new instance urls overwrite active url rather than add new tab
 CMD ["/run.sh"]
