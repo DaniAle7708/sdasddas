@@ -686,43 +686,52 @@ fi
 
 #### Start browser
 if [ "$DEBUG_MODE" != true ]; then
-    # Variabili per forzare il software rendering (Mesa)
+    # Variabili d'ambiente per forzare il software rendering
     export LIBGL_ALWAYS_SOFTWARE=1
-    export GALLIUM_DRIVER=swr
+    export GALLIUM_DRIVER=llvmpipe
     export EGL_PLATFORM=x11
-    
-    bashio::log.info "Launching Chromium with strict Software Rendering..."
-    
+    export GDK_BACKEND=x11
+    export QT_X11_NO_MITSHM=1
+    export _X11_NO_MITSHM=1
+
+    bashio::log.info "Lancio di Chromium con configurazione Ultra-Safe..."
+
     chromium \
       --user-data-dir="/data/browser" \
       --no-sandbox \
+      --no-zygote \
       --disable-gpu \
       --disable-software-rasterizer \
       --disable-gpu-compositing \
       --disable-gpu-rasterization \
       --disable-gpu-sandbox \
       --disable-dev-shm-usage \
+      --disable-gpu-memory-buffer-video-frames \
+      --disable-gpu-memory-buffer-compositor-resources \
+      --disable-vulkan \
+      --disable-unveiled-gpu \
       --ozone-platform=x11 \
       --test-type \
       --no-first-run \
-      --disable-features=WebBluetooth,WebUSB,PreloadMediaEngagementData \
-      --remote-debugging-port=9222 \
       --start-maximized \
       --kiosk "$HA_URL/$HA_DASHBOARD" &
     
-    bashio::log.info "Chromium (PID=$!) launched!"
+    CHROME_PID=$!
+    bashio::log.info "Chromium lanciato (PID=$CHROME_PID). Monitoraggio in corso..."
 
-    count=0
-    while true; do  # Wait for all browser processes to exit
-        if pgrep -f -- "^$BROWSER " > /dev/null 2>&1; then
+    # Il loop di controllo deve essere più tollerante all'avvio
+    sleep 10
+    while true; do  
+        if pgrep -f "chromium" > /dev/null 2>&1; then
             count=0
         else
             count=$((count + 1))
+            bashio::log.warning "Chromium non risponde (tentativo $count di 3)..."
         fi
-        [ $count -ge 3 ] && break # Exit if no browser process for at least 2*5=10 seconds
+        [ $count -ge 3 ] && break 
         sleep 5
     done
-    bashio::log.info "No $BROWSER instances remaining... exiting 'run.sh'..."
+    bashio::log.info "Chromium è terminato. Chiusura add-on..."
 
 else  ### Debug mode
     bashio::log.info "Entering debug mode (X & $WINMGR window manager but no $BROWSER browser)..."
