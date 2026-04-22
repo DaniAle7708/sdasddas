@@ -80,10 +80,9 @@ cleanup() {
 }
 trap cleanup HUP INT QUIT ABRT TERM EXIT
 
-################################################################################
 #### Variables
 BROWSER="chromium"
-BROWSER_FLAGS="--kiosk --no-sandbox --user-data-dir=/data/browser --disable-infobars"
+BROWSER_FLAGS="--kiosk --no-sandbox --user-data-dir=/data/browser --disable-infobars --disable-gpu --disable-software-rasterizer --autoplay-policy=no-user-gesture-required"
 
 ################################################################################
 #### Get config variables from HA add-on & set environment variables
