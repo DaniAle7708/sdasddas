@@ -84,5 +84,3 @@ RUN pip install --no-cache-dir  --break-system-packages aiohttp #Required for re
 #### Patches
 # Need to patch 'unique_instance.lua' so that new instance urls overwrite active url rather than add new tab
 CMD ["/run.sh"]
-
-CMD ["/run.sh"]
